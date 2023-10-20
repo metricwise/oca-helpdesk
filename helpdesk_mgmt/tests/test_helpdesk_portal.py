@@ -2,7 +2,7 @@
 # License AGPL-3 - See http://www.gnu.org/licenses/agpl-3.0.html
 # import odoo.tests
 from odoo import http
-from odoo.tests.common import new_test_user
+from odoo.tests.common import new_test_pass, new_test_user
 
 from odoo.addons.base.tests.common import HttpCaseWithUserPortal
 
@@ -133,7 +133,7 @@ class TestHelpdeskPortal(HttpCaseWithUserPortal):
         self.partner_portal.parent_id = False
         portal_user_1 = self.user_portal  # created by HttpCaseWithUserPortal
         portal_user_2 = self.user_portal.copy(
-            default={"login": "portal2", "password": "portal2"}
+            default={"login": "portal2", "password": new_test_pass(self.env, "portal2")}
         )
 
         ticket_1 = self._create_ticket(portal_user_1.partner_id, "ticket-user-1")
@@ -147,7 +147,7 @@ class TestHelpdeskPortal(HttpCaseWithUserPortal):
         self.assertNotIn("ticket-user-2", resp.text)
 
         # Portal ticket list: portal_user_2 only sees ticket_2
-        self.authenticate("portal2", "portal2")
+        self.authenticate("portal2")
         resp = self.url_open("/my/tickets")
         self.assertEqual(resp.status_code, 200)
         self.assertNotIn("ticket-user-1", resp.text)
@@ -164,7 +164,7 @@ class TestHelpdeskPortal(HttpCaseWithUserPortal):
         self.assertTrue(resp.headers["Location"].endswith("/my"))
 
         # Portal ticket form: portal_user_2 can open ticket_2 but not ticket_1
-        self.authenticate("portal2", "portal2")
+        self.authenticate("portal2")
         resp = self.url_open(f"/my/ticket/{ticket_1.id}", allow_redirects=False)
         self.assertEqual(resp.status_code, 303)
         self.assertTrue(resp.is_redirect)
